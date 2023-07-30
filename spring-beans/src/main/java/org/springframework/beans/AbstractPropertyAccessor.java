@@ -30,143 +30,154 @@ import org.springframework.lang.Nullable;
  *
  * @author Juergen Hoeller
  * @author Stephane Nicoll
- * @since 2.0
  * @see #getPropertyValue
  * @see #setPropertyValue
+ * @since 2.0
  */
 public abstract class AbstractPropertyAccessor extends TypeConverterSupport implements ConfigurablePropertyAccessor {
 
-	private boolean extractOldValueForEditor = false;
+    private boolean extractOldValueForEditor = false;
 
-	private boolean autoGrowNestedPaths = false;
+    private boolean autoGrowNestedPaths = false;
 
-	boolean suppressNotWritablePropertyException = false;
-
-
-	@Override
-	public void setExtractOldValueForEditor(boolean extractOldValueForEditor) {
-		this.extractOldValueForEditor = extractOldValueForEditor;
-	}
-
-	@Override
-	public boolean isExtractOldValueForEditor() {
-		return this.extractOldValueForEditor;
-	}
-
-	@Override
-	public void setAutoGrowNestedPaths(boolean autoGrowNestedPaths) {
-		this.autoGrowNestedPaths = autoGrowNestedPaths;
-	}
-
-	@Override
-	public boolean isAutoGrowNestedPaths() {
-		return this.autoGrowNestedPaths;
-	}
+    boolean suppressNotWritablePropertyException = false;
 
 
-	@Override
-	public void setPropertyValue(PropertyValue pv) throws BeansException {
-		setPropertyValue(pv.getName(), pv.getValue());
-	}
+    @Override
+    public void setExtractOldValueForEditor(boolean extractOldValueForEditor) {
+        this.extractOldValueForEditor = extractOldValueForEditor;
+    }
 
-	@Override
-	public void setPropertyValues(Map<?, ?> map) throws BeansException {
-		setPropertyValues(new MutablePropertyValues(map));
-	}
+    @Override
+    public boolean isExtractOldValueForEditor() {
+        return this.extractOldValueForEditor;
+    }
 
-	@Override
-	public void setPropertyValues(PropertyValues pvs) throws BeansException {
-		setPropertyValues(pvs, false, false);
-	}
+    @Override
+    public void setAutoGrowNestedPaths(boolean autoGrowNestedPaths) {
+        this.autoGrowNestedPaths = autoGrowNestedPaths;
+    }
 
-	@Override
-	public void setPropertyValues(PropertyValues pvs, boolean ignoreUnknown) throws BeansException {
-		setPropertyValues(pvs, ignoreUnknown, false);
-	}
-
-	@Override
-	public void setPropertyValues(PropertyValues pvs, boolean ignoreUnknown, boolean ignoreInvalid)
-			throws BeansException {
-
-		List<PropertyAccessException> propertyAccessExceptions = null;
-		List<PropertyValue> propertyValues = (pvs instanceof MutablePropertyValues ?
-				((MutablePropertyValues) pvs).getPropertyValueList() : Arrays.asList(pvs.getPropertyValues()));
-
-		if (ignoreUnknown) {
-			this.suppressNotWritablePropertyException = true;
-		}
-		try {
-			for (PropertyValue pv : propertyValues) {
-				// setPropertyValue may throw any BeansException, which won't be caught
-				// here, if there is a critical failure such as no matching field.
-				// We can attempt to deal only with less serious exceptions.
-				try {
-					setPropertyValue(pv);
-				}
-				catch (NotWritablePropertyException ex) {
-					if (!ignoreUnknown) {
-						throw ex;
-					}
-					// Otherwise, just ignore it and continue...
-				}
-				catch (NullValueInNestedPathException ex) {
-					if (!ignoreInvalid) {
-						throw ex;
-					}
-					// Otherwise, just ignore it and continue...
-				}
-				catch (PropertyAccessException ex) {
-					if (propertyAccessExceptions == null) {
-						propertyAccessExceptions = new ArrayList<>();
-					}
-					propertyAccessExceptions.add(ex);
-				}
-			}
-		}
-		finally {
-			if (ignoreUnknown) {
-				this.suppressNotWritablePropertyException = false;
-			}
-		}
-
-		// If we encountered individual exceptions, throw the composite exception.
-		if (propertyAccessExceptions != null) {
-			PropertyAccessException[] paeArray = propertyAccessExceptions.toArray(new PropertyAccessException[0]);
-			throw new PropertyBatchUpdateException(paeArray);
-		}
-	}
+    @Override
+    public boolean isAutoGrowNestedPaths() {
+        return this.autoGrowNestedPaths;
+    }
 
 
-	// Redefined with public visibility.
-	@Override
-	@Nullable
-	public Class<?> getPropertyType(String propertyPath) {
-		return null;
-	}
+    @Override
+    public void setPropertyValue(PropertyValue pv) throws BeansException {
+        setPropertyValue(pv.getName(), pv.getValue());
+    }
 
-	/**
-	 * Actually get the value of a property.
-	 * @param propertyName name of the property to get the value of
-	 * @return the value of the property
-	 * @throws InvalidPropertyException if there is no such property or
-	 * if the property isn't readable
-	 * @throws PropertyAccessException if the property was valid but the
-	 * accessor method failed
-	 */
-	@Override
-	@Nullable
-	public abstract Object getPropertyValue(String propertyName) throws BeansException;
 
-	/**
-	 * Actually set a property value.
-	 * @param propertyName name of the property to set value of
-	 * @param value the new value
-	 * @throws InvalidPropertyException if there is no such property or
-	 * if the property isn't writable
-	 * @throws PropertyAccessException if the property was valid but the
-	 * accessor method failed or a type mismatch occurred
-	 */
-	@Override
-	public abstract void setPropertyValue(String propertyName, @Nullable Object value) throws BeansException;
+    /**
+     * setPropertyValues() 方法有多种重载，但最终都走的是
+     * setPropertyValues(PropertyValues pvs, boolean ignoreUnknown, boolean ignoreInvalid)重载方法
+     */
+    @Override
+    public void setPropertyValues(Map<?, ?> map) throws BeansException {
+        setPropertyValues(new MutablePropertyValues(map));
+    }
+
+    @Override
+    public void setPropertyValues(PropertyValues pvs) throws BeansException {
+        setPropertyValues(pvs, false, false);
+    }
+
+    @Override
+    public void setPropertyValues(PropertyValues pvs, boolean ignoreUnknown) throws BeansException {
+        setPropertyValues(pvs, ignoreUnknown, false);
+    }
+
+    @Override
+    public void setPropertyValues(PropertyValues pvs, boolean ignoreUnknown, boolean ignoreInvalid)
+            throws BeansException {
+
+        List<PropertyAccessException> propertyAccessExceptions = null;
+        List<PropertyValue> propertyValues = (pvs instanceof MutablePropertyValues ?
+                ((MutablePropertyValues) pvs).getPropertyValueList() : Arrays.asList(pvs.getPropertyValues()));
+
+        if (ignoreUnknown) {
+            this.suppressNotWritablePropertyException = true;
+        }
+        try {
+            for (PropertyValue pv : propertyValues) {
+                // setPropertyValue may throw any BeansException, which won't be caught
+                // here, if there is a critical failure such as no matching field.
+                // We can attempt to deal only with less serious exceptions.
+                try {
+
+                    /**
+                     * ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+                     * 该方法走 BeanWrapperImpl 中的实现，这是 bean属性值注入 具体实现的入口
+                     * ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+                     */
+                    setPropertyValue(pv);
+                } catch (NotWritablePropertyException ex) {
+                    if (!ignoreUnknown) {
+                        throw ex;
+                    }
+                    // Otherwise, just ignore it and continue...
+                } catch (NullValueInNestedPathException ex) {
+                    if (!ignoreInvalid) {
+                        throw ex;
+                    }
+                    // Otherwise, just ignore it and continue...
+                } catch (PropertyAccessException ex) {
+                    if (propertyAccessExceptions == null) {
+                        propertyAccessExceptions = new ArrayList<>();
+                    }
+                    propertyAccessExceptions.add(ex);
+                }
+            }
+        } finally {
+            if (ignoreUnknown) {
+                this.suppressNotWritablePropertyException = false;
+            }
+        }
+
+        // If we encountered individual exceptions, throw the composite exception.
+        // 如果出现 PropertyAccessException 异常，则将这些异常积累起来放到一个集合中，然后一次性抛出！！！
+        // 这种抛异常的方式 在实际的开发中也时常使用，可以好好看一下，对比一下
+        if (propertyAccessExceptions != null) {
+            PropertyAccessException[] paeArray = propertyAccessExceptions.toArray(new PropertyAccessException[0]);
+            throw new PropertyBatchUpdateException(paeArray);
+        }
+    }
+
+
+    // Redefined with public visibility.
+    @Override
+    @Nullable
+    public Class<?> getPropertyType(String propertyPath) {
+        return null;
+    }
+
+    /**
+     * Actually get the value of a property.
+     *
+     * @param propertyName name of the property to get the value of
+     * @return the value of the property
+     * @throws InvalidPropertyException if there is no such property or
+     *                                  if the property isn't readable
+     * @throws PropertyAccessException  if the property was valid but the
+     *                                  accessor method failed
+     */
+    @Override
+    @Nullable
+    public abstract Object getPropertyValue(String propertyName) throws BeansException;
+
+    /**
+     * Actually set a property value.
+     *
+     * @param propertyName name of the property to set value of
+     * @param value        the new value
+     * @throws InvalidPropertyException if there is no such property or
+     *                                  if the property isn't writable
+     * @throws PropertyAccessException  if the property was valid but the
+     *                                  accessor method failed or a type mismatch occurred
+     */
+    @Override
+    public abstract void setPropertyValue(String propertyName, @Nullable Object value) throws BeansException;
 
 }

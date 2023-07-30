@@ -291,6 +291,7 @@ public class BeanWrapperImpl extends AbstractNestablePropertyAccessor implements
 		public Object getValue() throws Exception {
 			Method readMethod = this.pd.getReadMethod();
 			if (System.getSecurityManager() != null) {
+				   // 匿名内部类，根据权限修改属性的读取控制限制
 				AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
 					ReflectionUtils.makeAccessible(readMethod);
 					return null;
@@ -314,7 +315,9 @@ public class BeanWrapperImpl extends AbstractNestablePropertyAccessor implements
 			Method writeMethod = (this.pd instanceof GenericTypeAwarePropertyDescriptor ?
 					((GenericTypeAwarePropertyDescriptor) this.pd).getWriteMethodForActualAccess() :
 					this.pd.getWriteMethod());
+
 			if (System.getSecurityManager() != null) {
+				   // 匿名内部类，根据权限修改属性的读取控制限制
 				AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
 					ReflectionUtils.makeAccessible(writeMethod);
 					return null;

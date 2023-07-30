@@ -70,6 +70,9 @@ public interface BeanFactoryPostProcessor {
 	 * @param beanFactory the bean factory used by the application context
 	 * @throws org.springframework.beans.BeansException in case of errors
 	 */
+	 /**
+     *通过ConfigurableListableBeanFactory这个可配置的BeanFactory对我们的bean原数据进行修改
+     */
 	void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException;
 
 }

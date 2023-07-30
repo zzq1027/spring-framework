@@ -157,6 +157,8 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 	 * <p>Also supports JSR-330's {@link javax.inject.Inject @Inject} annotation,
 	 * if available.
 	 */
+	// 这个类可以看见当我们创建AutowiredAnnotationBeanPostProcessor对象的时候完成了一个工作就是给
+	// autowiredAnnotationTypes赋值,这个操作有点超前，后面根据这个判断要注入的类中是否有如下的注解
 	@SuppressWarnings("unchecked")
 	public AutowiredAnnotationBeanPostProcessor() {
 		this.autowiredAnnotationTypes.add(Autowired.class);
@@ -392,10 +394,13 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 		return (candidateConstructors.length > 0 ? candidateConstructors : null);
 	}
 
+	// 从InstantiationAwareBeanPostProcessors继承而来
 	@Override
 	public PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName) {
+		// 寻找注入的元数据，其中它有注解扫描，和类属性信息的填充
 		InjectionMetadata metadata = findAutowiringMetadata(beanName, bean.getClass(), pvs);
 		try {
+			 // 把数据注入到当前的bean，由于需要分析的过程太多就略过怎么实现的
 			metadata.inject(bean, beanName, pvs);
 		}
 		catch (BeanCreationException ex) {

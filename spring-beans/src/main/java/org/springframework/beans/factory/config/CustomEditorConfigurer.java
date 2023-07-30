@@ -125,6 +125,7 @@ public class CustomEditorConfigurer implements BeanFactoryPostProcessor, Ordered
 	 * instances for each bean creation attempt.
 	 * @see ConfigurableListableBeanFactory#addPropertyEditorRegistrar
 	 */
+	// 必然有个set方法让我们进行注入
 	public void setPropertyEditorRegistrars(PropertyEditorRegistrar[] propertyEditorRegistrars) {
 		this.propertyEditorRegistrars = propertyEditorRegistrars;
 	}
@@ -144,6 +145,7 @@ public class CustomEditorConfigurer implements BeanFactoryPostProcessor, Ordered
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		if (this.propertyEditorRegistrars != null) {
 			for (PropertyEditorRegistrar propertyEditorRegistrar : this.propertyEditorRegistrars) {
+				   // 把它加入Bean工厂里后面可以进行调用
 				beanFactory.addPropertyEditorRegistrar(propertyEditorRegistrar);
 			}
 		}

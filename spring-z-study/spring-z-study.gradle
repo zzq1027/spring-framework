@@ -1,0 +1,15 @@
+description = "Spring Z Study"
+
+apply plugin: "kotlin"
+
+
+dependencies {
+    implementation 'org.projectlombok:lombok:1.18.16'
+    api(project(":spring-context"))
+//    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+//    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}
+
+//tasks.named('test') {
+//	useJUnitPlatform()
+//}
