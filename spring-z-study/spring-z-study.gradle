@@ -6,6 +6,8 @@ apply plugin: "kotlin"
 dependencies {
     implementation 'org.projectlombok:lombok:1.18.16'
     api(project(":spring-context"))
+    api(project(":spring-web"))
+    optional("javax.servlet:javax.servlet-api") // Servlet 4 for mapping type
 //    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
 //    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
 }

@@ -296,21 +296,30 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 * </ul>
 	 */
 	public void overrideFrom(BeanDefinition other) {
+		//如有直接覆盖BeanClassName
 		if (StringUtils.hasLength(other.getBeanClassName())) {
 			setBeanClassName(other.getBeanClassName());
 		}
+
+		//如有作用域直接覆盖作用域
 		if (StringUtils.hasLength(other.getScope())) {
 			setScope(other.getScope());
 		}
+
+		//覆盖是否抽象
 		setAbstract(other.isAbstract());
 		if (StringUtils.hasLength(other.getFactoryBeanName())) {
 			setFactoryBeanName(other.getFactoryBeanName());
 		}
+
+			//覆盖工厂方法名
 		if (StringUtils.hasLength(other.getFactoryMethodName())) {
 			setFactoryMethodName(other.getFactoryMethodName());
 		}
 		setRole(other.getRole());
 		setSource(other.getSource());
+
+		//拷贝属性
 		copyAttributesFrom(other);
 
 		if (other instanceof AbstractBeanDefinition) {

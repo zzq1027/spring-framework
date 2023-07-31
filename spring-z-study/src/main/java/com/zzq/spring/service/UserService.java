@@ -1,6 +1,7 @@
 package com.zzq.spring.service;
 
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -9,6 +10,9 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class UserService implements UserInterface,BeanNameAware {
+
+	@Autowired
+	private OrderService orderService;
 
 	private String beanName;
 

@@ -161,6 +161,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 	// autowiredAnnotationTypes赋值,这个操作有点超前，后面根据这个判断要注入的类中是否有如下的注解
 	@SuppressWarnings("unchecked")
 	public AutowiredAnnotationBeanPostProcessor() {
+		// 设置自动装配的注解类型
 		this.autowiredAnnotationTypes.add(Autowired.class);
 		this.autowiredAnnotationTypes.add(Value.class);
 		try {
@@ -464,6 +465,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 	}
 
 	private InjectionMetadata buildAutowiringMetadata(Class<?> clazz) {
+		// 如果一个Bean的类型是String .... 那么则根本不需要进行依赖注入
 		if (!AnnotationUtils.isCandidateClass(clazz, this.autowiredAnnotationTypes)) {
 			return InjectionMetadata.EMPTY;
 		}
