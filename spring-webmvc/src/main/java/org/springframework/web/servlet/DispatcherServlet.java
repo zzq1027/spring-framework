@@ -1045,6 +1045,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				multipartRequestParsed = (processedRequest != request);
 
 				// Determine handler for the current request.
+				// 将请求转换为 handler 对象
 				mappedHandler = getHandler(processedRequest);
 				if (mappedHandler == null) {
 					noHandlerFound(processedRequest, response);
@@ -1052,9 +1053,11 @@ public class DispatcherServlet extends FrameworkServlet {
 				}
 
 				// Determine handler adapter for the current request.
+				// handler 对象转换成 HandlerAdapter 对象
 				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
 
 				// Process last-modified header, if supported by the handler.
+				// HTTP缓存相关
 				String method = request.getMethod();
 				boolean isGet = HttpMethod.GET.matches(method);
 				if (isGet || HttpMethod.HEAD.matches(method)) {
@@ -1063,19 +1066,22 @@ public class DispatcherServlet extends FrameworkServlet {
 						return;
 					}
 				}
-
+				// 处理HandlerInterceptor
 				if (!mappedHandler.applyPreHandle(processedRequest, response)) {
+					// 返回false就不进行后续处理了
 					return;
 				}
 
 				// Actually invoke the handler.
+				// 执行 HandlerAdapter的handle方法
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
 				if (asyncManager.isConcurrentHandlingStarted()) {
 					return;
 				}
-
+				// 如果mv有  视图没有，给你设置默认视图   RequestToViewNameTranslator 处理
 				applyDefaultViewName(processedRequest, mv);
+				//后置拦截器
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
 			}
 			catch (Exception ex) {
@@ -1114,6 +1120,9 @@ public class DispatcherServlet extends FrameworkServlet {
 	/**
 	 * Do we need view name translation?
 	 */
+	/**
+	 * 如果没有视图，给你设置默认视图
+	 */
 	private void applyDefaultViewName(HttpServletRequest request, @Nullable ModelAndView mv) throws Exception {
 		if (mv != null && !mv.hasView()) {
 			String defaultViewName = getDefaultViewName(request);
@@ -1133,6 +1142,7 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		boolean errorView = false;
 
+		// 异常视图
 		if (exception != null) {
 			if (exception instanceof ModelAndViewDefiningException) {
 				logger.debug("ModelAndViewDefiningException encountered", exception);
@@ -1140,6 +1150,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			}
 			else {
 				Object handler = (mappedHandler != null ? mappedHandler.getHandler() : null);
+				// 处理异常
 				mv = processHandlerException(request, response, handler, exception);
 				errorView = (mv != null);
 			}
@@ -1147,6 +1158,7 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		// Did the handler return a view to render?
 		if (mv != null && !mv.wasCleared()) {
+			// 解析、渲染视图
 			render(mv, request, response);
 			if (errorView) {
 				WebUtils.clearErrorRequestAttributes(request);
@@ -1323,6 +1335,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			@Nullable Object handler, Exception ex) throws Exception {
 
 		// Success and error responses may use different content types
+		// 移除属性
 		request.removeAttribute(HandlerMapping.PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE);
 
 		// Check registered HandlerExceptionResolvers...
@@ -1337,13 +1350,17 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 		if (exMv != null) {
 			if (exMv.isEmpty()) {
+				// 设置异常堆栈
 				request.setAttribute(EXCEPTION_ATTRIBUTE, ex);
 				return null;
 			}
 			// We might still need view name translation for a plain error model...
+			// 是否存在视图名称
 			if (!exMv.hasView()) {
+				// 获取默认视图名称
 				String defaultViewName = getDefaultViewName(request);
 				if (defaultViewName != null) {
+					// 设置视图名称
 					exMv.setViewName(defaultViewName);
 				}
 			}
@@ -1353,6 +1370,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			else if (logger.isDebugEnabled()) {
 				logger.debug("Using resolved error view: " + exMv);
 			}
+			// 暴露异常信息
 			WebUtils.exposeErrorRequestAttributes(request, ex, getServletName());
 			return exMv;
 		}

@@ -339,7 +339,9 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * @return the created HandlerMethod
 	 */
 	protected HandlerMethod createHandlerMethod(Object handler, Method method) {
+		// 是否是字符串
 		if (handler instanceof String) {
+			// 创建对象
 			return new HandlerMethod((String) handler,
 					obtainApplicationContext().getAutowireCapableBeanFactory(),
 					obtainApplicationContext(),
@@ -377,6 +379,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	@Override
 	@Nullable
 	protected HandlerMethod getHandlerInternal(HttpServletRequest request) throws Exception {
+		// 获取当前请求路径
 		String lookupPath = initLookupPath(request);
 		this.mappingRegistry.acquireReadLock();
 		try {
@@ -400,22 +403,31 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	@Nullable
 	protected HandlerMethod lookupHandlerMethod(String lookupPath, HttpServletRequest request) throws Exception {
 		List<Match> matches = new ArrayList<>();
+		// 从 MultiValueMap 获取
 		List<T> directPathMatches = this.mappingRegistry.getMappingsByDirectPath(lookupPath);
+		 // 如果不为空
 		if (directPathMatches != null) {
+			 // 添加匹配映射
 			addMatchingMappings(directPathMatches, matches, request);
 		}
 		if (matches.isEmpty()) {
+			// 添加匹配映射
 			addMatchingMappings(this.mappingRegistry.getRegistrations().keySet(), matches, request);
 		}
 		if (!matches.isEmpty()) {
 			Match bestMatch = matches.get(0);
 			if (matches.size() > 1) {
+				// 比较对象
 				Comparator<Match> comparator = new MatchComparator(getMappingComparator(request));
+				// 排序
 				matches.sort(comparator);
+				// 获取第一个 match 对象
 				bestMatch = matches.get(0);
 				if (logger.isTraceEnabled()) {
 					logger.trace(matches.size() + " matching mappings: " + matches);
 				}
+
+				// 是否跨域请求
 				if (CorsUtils.isPreFlightRequest(request)) {
 					for (Match match : matches) {
 						if (match.hasCorsConfig()) {
@@ -424,8 +436,12 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 					}
 				}
 				else {
+					 // 取出第二个元素.
 					Match secondBestMatch = matches.get(1);
+					// 如果比较结果相同
 					if (comparator.compare(bestMatch, secondBestMatch) == 0) {
+						// 第二个元素和第一个元素的比较过程
+     					 // 拿出 handlerMethod 进行比较
 						Method m1 = bestMatch.getHandlerMethod().getMethod();
 						Method m2 = secondBestMatch.getHandlerMethod().getMethod();
 						String uri = request.getRequestURI();
@@ -434,19 +450,26 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 					}
 				}
 			}
+			// 设置属性
 			request.setAttribute(BEST_MATCHING_HANDLER_ATTRIBUTE, bestMatch.getHandlerMethod());
+			 // 寻找 handler method
 			handleMatch(bestMatch.mapping, lookupPath, request);
 			return bestMatch.getHandlerMethod();
 		}
 		else {
+			 // 处理没有匹配的结果
 			return handleNoMatch(this.mappingRegistry.getRegistrations().keySet(), lookupPath, request);
 		}
 	}
 
 	private void addMatchingMappings(Collection<T> mappings, List<Match> matches, HttpServletRequest request) {
 		for (T mapping : mappings) {
+			// 抽象方法
+      		// 通过抽象方法获取 match 结果
 			T match = getMatchingMapping(mapping, request);
+			// 是否为空
 			if (match != null) {
+				 // 从 mappingLookup 获取结果并且插入到matches中
 				matches.add(new Match(match, this.mappingRegistry.getRegistrations().get(mapping)));
 			}
 		}
@@ -537,6 +560,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	protected Set<String> getDirectPaths(T mapping) {
 		Set<String> urls = Collections.emptySet();
 		for (String path : getMappingPathPatterns(mapping)) {
+			// 是否匹配
 			if (!getPathMatcher().isPattern(path)) {
 				urls = (urls.isEmpty() ? new HashSet<>(1) : urls);
 				urls.add(path);
@@ -571,14 +595,34 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 */
 	class MappingRegistry {
 
+		/**
+		* key:mapping
+		* value: mapping registration
+		*/
 		private final Map<T, MappingRegistration<T>> registry = new HashMap<>();
 
+		/**
+		* key: url
+		* value: list mapping
+		*/
 		private final MultiValueMap<String, T> pathLookup = new LinkedMultiValueMap<>();
 
+
+		/**
+		* key: name
+		* value: handler method
+		*/
 		private final Map<String, List<HandlerMethod>> nameLookup = new ConcurrentHashMap<>();
 
+		/**
+		* key:handler method
+		* value: 跨域配置
+		*/
 		private final Map<HandlerMethod, CorsConfiguration> corsLookup = new ConcurrentHashMap<>();
 
+		/**
+		* 读写锁
+		*/
 		private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
 		/**
@@ -628,14 +672,25 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 			this.readWriteLock.readLock().unlock();
 		}
 
+		/**
+         * 注册方法 将controller 相关信息存储
+         *
+         * @param mapping 请求地址
+         * @param handler 处理类
+         * @param method  函数
+         */
 		public void register(T mapping, Object handler, Method method) {
+			 // 上锁
 			this.readWriteLock.writeLock().lock();
 			try {
+				 // 创建 HandlerMethod , 通过 handler 创建处理的对象(controller)
 				HandlerMethod handlerMethod = createHandlerMethod(handler, method);
 				validateMethodMapping(handlerMethod, mapping);
 
+				// 获取url
 				Set<String> directPaths = AbstractHandlerMethodMapping.this.getDirectPaths(mapping);
 				for (String path : directPaths) {
+					 // 设置
 					this.pathLookup.add(path, mapping);
 				}
 
@@ -645,6 +700,11 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 					addMappingName(name, handlerMethod);
 				}
 
+
+				/**
+                 * 跨域设置
+                 * {@link org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping#initCorsConfiguration(Object, Method, RequestMappingInfo)}
+                 **/
 				CorsConfiguration corsConfig = initCorsConfiguration(handler, method, mapping);
 				if (corsConfig != null) {
 					corsConfig.validateAllowCredentials();
@@ -655,13 +715,16 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 						new MappingRegistration<>(mapping, handlerMethod, directPaths, name, corsConfig != null));
 			}
 			finally {
+				// 开锁
 				this.readWriteLock.writeLock().unlock();
 			}
 		}
 
 		private void validateMethodMapping(HandlerMethod handlerMethod, T mapping) {
+			 // 从缓存中获取
 			MappingRegistration<T> registration = this.registry.get(mapping);
 			HandlerMethod existingHandlerMethod = (registration != null ? registration.getHandlerMethod() : null);
+			// 是否为空 , 是否相同
 			if (existingHandlerMethod != null && !existingHandlerMethod.equals(handlerMethod)) {
 				throw new IllegalStateException(
 						"Ambiguous mapping. Cannot map '" + handlerMethod.getBean() + "' method \n" +

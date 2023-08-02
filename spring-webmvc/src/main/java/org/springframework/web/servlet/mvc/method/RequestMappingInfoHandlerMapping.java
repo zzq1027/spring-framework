@@ -244,17 +244,20 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 		if (CollectionUtils.isEmpty(infos)) {
 			return null;
 		}
-
+		 // 创建对象 PartialMatchHelper
 		PartialMatchHelper helper = new PartialMatchHelper(infos, request);
 		if (helper.isEmpty()) {
 			return null;
 		}
-
+		// 函数是否匹配
 		if (helper.hasMethodsMismatch()) {
 			Set<String> methods = helper.getAllowedMethods();
+			 // 请求方式比较
 			if (HttpMethod.OPTIONS.matches(request.getMethod())) {
 				Set<MediaType> mediaTypes = helper.getConsumablePatchMediaTypes();
+				 // handler 转换
 				HttpOptionsHandler handler = new HttpOptionsHandler(methods, mediaTypes);
+				 // 构建 handler method
 				return new HandlerMethod(handler, HTTP_OPTIONS_HANDLE_METHOD);
 			}
 			throw new HttpRequestMethodNotSupportedException(request.getMethod(), methods);
@@ -265,6 +268,7 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 			MediaType contentType = null;
 			if (StringUtils.hasLength(request.getContentType())) {
 				try {
+					 // 字符串转换成对象
 					contentType = MediaType.parseMediaType(request.getContentType());
 				}
 				catch (InvalidMediaTypeException ex) {

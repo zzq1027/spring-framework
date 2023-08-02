@@ -77,13 +77,21 @@ public class UrlPathHelper {
 	@Nullable
 	static volatile Boolean websphereComplianceFlag;
 
-
+	/**
+	 * 是否全路径标记
+	 */
 	private boolean alwaysUseFullPath = false;
 
+	/**
+	 * 是否需要 decode
+	 */
 	private boolean urlDecode = true;
 
 	private boolean removeSemicolonContent = true;
 
+	/**
+	 * 默认的encoding编码格式
+	 */
 	private String defaultEncoding = WebUtils.DEFAULT_CHARACTER_ENCODING;
 
 	private boolean readOnly = false;
@@ -349,7 +357,9 @@ public class UrlPathHelper {
 	 * @see #getLookupPathForRequest
 	 */
 	public String getPathWithinApplication(HttpServletRequest request) {
+		 // 获取 context path
 		String contextPath = getContextPath(request);
+		// 获取 uri
 		String requestUri = getRequestUri(request);
 		String path = getRemainingPath(requestUri, contextPath, true);
 		if (path != null) {
@@ -431,10 +441,13 @@ public class UrlPathHelper {
 	 * @return the request URI
 	 */
 	public String getRequestUri(HttpServletRequest request) {
+		// 从属性中获取
 		String uri = (String) request.getAttribute(WebUtils.INCLUDE_REQUEST_URI_ATTRIBUTE);
 		if (uri == null) {
+			// 调用方法获取
 			uri = request.getRequestURI();
 		}
+		 //编码和清理数据
 		return decodeAndCleanUriString(request, uri);
 	}
 
@@ -447,6 +460,7 @@ public class UrlPathHelper {
 	 * @return the context path
 	 */
 	public String getContextPath(HttpServletRequest request) {
+		// 从 request 获取 context path
 		String contextPath = (String) request.getAttribute(WebUtils.INCLUDE_CONTEXT_PATH_ATTRIBUTE);
 		if (contextPath == null) {
 			contextPath = request.getContextPath();
@@ -546,8 +560,11 @@ public class UrlPathHelper {
 	 * Decode the supplied URI string and strips any extraneous portion after a ';'.
 	 */
 	private String decodeAndCleanUriString(HttpServletRequest request, String uri) {
+		// 去掉分号
 		uri = removeSemicolonContent(uri);
+		// decoding
 		uri = decodeRequestString(request, uri);
+		 // 去掉 // 双斜杠
 		uri = getSanitizedPath(uri);
 		return uri;
 	}
@@ -565,7 +582,9 @@ public class UrlPathHelper {
 	 * @see java.net.URLDecoder#decode(String)
 	 */
 	public String decodeRequestString(HttpServletRequest request, String source) {
+		// 判断是否需要编码
 		if (this.urlDecode) {
+			// 进行编码
 			return decodeInternal(request, source);
 		}
 		return source;
@@ -573,8 +592,10 @@ public class UrlPathHelper {
 
 	@SuppressWarnings("deprecation")
 	private String decodeInternal(HttpServletRequest request, String source) {
+		// 确定编码方式
 		String enc = determineEncoding(request);
 		try {
+			 // 将 source 编译成 enc 的编码方式
 			return UriUtils.decode(source, enc);
 		}
 		catch (UnsupportedCharsetException ex) {
@@ -582,6 +603,7 @@ public class UrlPathHelper {
 				logger.debug("Could not decode request string [" + source + "] with encoding '" + enc +
 						"': falling back to platform default encoding; exception message: " + ex.getMessage());
 			}
+			// 直接编码,JDK底层编码
 			return URLDecoder.decode(source);
 		}
 	}
@@ -597,8 +619,10 @@ public class UrlPathHelper {
 	 * @see #setDefaultEncoding
 	 */
 	protected String determineEncoding(HttpServletRequest request) {
+		// 从 request 中获取编码方式
 		String enc = request.getCharacterEncoding();
 		if (enc == null) {
+			 // 默认编码
 			enc = getDefaultEncoding();
 		}
 		return enc;
@@ -659,11 +683,13 @@ public class UrlPathHelper {
 	 * @return the same Map or a new Map instance
 	 */
 	public Map<String, String> decodePathVariables(HttpServletRequest request, Map<String, String> vars) {
+		// 判断是否需要重写编码
 		if (this.urlDecode) {
 			return vars;
 		}
 		else {
 			Map<String, String> decodedVars = CollectionUtils.newLinkedHashMap(vars.size());
+			 // 虚幻 decoding
 			vars.forEach((key, value) -> decodedVars.put(key, decodeInternal(request, value)));
 			return decodedVars;
 		}
@@ -680,12 +706,14 @@ public class UrlPathHelper {
 	 */
 	public MultiValueMap<String, String> decodeMatrixVariables(
 			HttpServletRequest request, MultiValueMap<String, String> vars) {
-
+		// 判断是否需要重写编码
 		if (this.urlDecode) {
 			return vars;
 		}
 		else {
+			// 需要重写编码的情况
 			MultiValueMap<String, String> decodedVars = new LinkedMultiValueMap<>(vars.size());
+			 // 循环, 将 value 调用decodeInternal写到结果map返回
 			vars.forEach((key, values) -> {
 				for (String value : values) {
 					decodedVars.add(key, decodeInternal(request, value));

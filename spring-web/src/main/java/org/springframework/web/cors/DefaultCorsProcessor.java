@@ -71,11 +71,11 @@ public class DefaultCorsProcessor implements CorsProcessor {
 		if (!varyHeaders.contains(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS)) {
 			response.addHeader(HttpHeaders.VARY, HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS);
 		}
-
+		 // 判断是否跨域请求
 		if (!CorsUtils.isCorsRequest(request)) {
 			return true;
 		}
-
+		 // 判断是否有 Access-Control-Allow-Origin
 		if (response.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN) != null) {
 			logger.trace("Skip: response already contains \"Access-Control-Allow-Origin\"");
 			return true;

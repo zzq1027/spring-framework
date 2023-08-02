@@ -39,6 +39,7 @@ public abstract class CorsUtils {
 	 * header presence and ensuring that origins are different.
 	 */
 	public static boolean isCorsRequest(HttpServletRequest request) {
+		// 是否携带 请求头:Origin
 		String origin = request.getHeader(HttpHeaders.ORIGIN);
 		if (origin == null) {
 			return false;

@@ -71,28 +71,45 @@ public class CorsConfiguration {
 	private static final List<String> DEFAULT_PERMIT_METHODS = Collections.unmodifiableList(
 			Arrays.asList(HttpMethod.GET.name(), HttpMethod.HEAD.name(), HttpMethod.POST.name()));
 
-
+	/**
+     * 允许请求源
+     */
 	@Nullable
 	private List<String> allowedOrigins;
 
 	@Nullable
 	private List<OriginPattern> allowedOriginPatterns;
 
+	/**
+     * 允许的http方法
+     */
 	@Nullable
 	private List<String> allowedMethods;
 
 	@Nullable
 	private List<HttpMethod> resolvedMethods = DEFAULT_METHODS;
 
+	/**
+     * 允许的请求头
+     */
 	@Nullable
 	private List<String> allowedHeaders;
 
+	/**
+     * 返回的响应头
+     */
 	@Nullable
 	private List<String> exposedHeaders;
 
+	/**
+     * 是否允许携带 cookies
+     */
 	@Nullable
 	private Boolean allowCredentials;
 
+	/**
+     * 存货有效期
+     */
 	@Nullable
 	private Long maxAge;
 
